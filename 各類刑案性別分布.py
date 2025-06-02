@@ -2,8 +2,11 @@ import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import numpy as np
 
-# 中文字體（macOS 使用 PingFang）
-chinese_font = FontProperties(fname="/System/Library/Fonts/PingFang.ttc", size=11)
+
+
+# 選擇適用的中文字體路徑（適用於 Windows）
+chinese_font = FontProperties(fname="C:/Windows/Fonts/msjh.ttc", size=12)
+
 
 # 資料定義
 categories = [

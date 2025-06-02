@@ -2,8 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.font_manager import FontProperties
 
-# 中文字體（macOS 使用 PingFang）
-chinese_font = FontProperties(fname="/System/Library/Fonts/PingFang.ttc", size=12)
+
+# 選擇適用的中文字體路徑（適用於 Windows）
+chinese_font = FontProperties(fname="C:/Windows/Fonts/msjh.ttc", size=12)
+
 
 # 年度與資料
 years = np.array([92 + i for i in range(20)])

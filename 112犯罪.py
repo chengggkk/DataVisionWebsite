@@ -6,18 +6,15 @@ import json
 import requests
 
 # Load and clean the crime data
-df = pd.read_csv("encoded-104年行政區犯罪人口率統計_縣市.csv", skiprows=1, encoding='utf-8')
-
+df = pd.read_csv("行政區犯罪人口率統計/104年行政區犯罪人口率統計_縣市.csv", skiprows=1, encoding='big5')
 # Clean data
 df = df.rename(columns={
     '縣市名稱': 'County',
     '犯罪人口率': 'Crime_Rate'
 })
-
 # Convert crime rate to numeric
 df['Crime_Rate'] = pd.to_numeric(df['Crime_Rate'], errors='coerce')
 df = df.dropna()
-
 # Create county name mapping for GeoJSON matching
 county_mapping = {
     '新北市': 'New Taipei City',
@@ -63,7 +60,6 @@ try:
     for feature in taiwan_geojson['features']:
         if feature['properties']['name'] == 'Taoyuan County':
             feature['properties']['name'] = 'Taoyuan City'
-    
     # Create the choropleth map
     fig = px.choropleth(
         df,
@@ -78,7 +74,6 @@ try:
         title='台灣各縣市犯罪人口率分布圖 (民國104年)<br>Taiwan Crime Rate Distribution by County/City',
         labels={'Crime_Rate': '犯罪人口率'}
     )
-    
     # Update layout for better Taiwan map display
     fig.update_geos(
         projection_type="mercator",
@@ -104,7 +99,6 @@ try:
             tickfont_size=12
         )
     )
-    
     # Show the interactive map
     fig.show()
     

@@ -35,12 +35,14 @@ merged['破獲率'] = merged['破獲率'].fillna(0)
 # 5. 設定中文字體 (macOS專用)
 try:
     # 嘗試蘋方-繁
-    zh_font = FontProperties(fname='/System/Library/Fonts/PingFang.ttc', size=12)
+    zh_font = FontProperties(fname="C:/Windows/Fonts/msjh.ttc", size=12)
+
     plt.rcParams['font.sans-serif'] = ['PingFang TC']
 except:
     try:
         # 嘗試華康黑體
-        zh_font = FontProperties(fname='/System/Library/Fonts/STHeiti Medium.ttc', size=12)
+        zh_font = FontProperties(fname="C:/Windows/Fonts/msjh.ttc", size=12)
+
         plt.rcParams['font.sans-serif'] = ['Heiti TC']
     except:
         # 最後嘗試
