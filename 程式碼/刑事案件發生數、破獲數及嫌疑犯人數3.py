@@ -27,6 +27,127 @@ data = {
 
 df = pd.DataFrame(data)
 
+print("="*80)
+print("           犯罪數據分析報告")
+print("="*80)
+
+# 基本統計分析
+print("\n【1. 基本統計摘要】")
+print(f"• 全台總犯罪發生數：{df['總計_發生數'].sum():,} 件")
+print(f"• 全台總犯罪破獲數：{df['總計_破獲數'].sum():,} 件")
+print(f"• 全台總嫌疑犯人數：{df['總計_嫌疑犯'].sum():,} 人")
+print(f"• 全台平均破獲率：{(df['總計_破獲數'].sum() / df['總計_發生數'].sum() * 100):.2f}%")
+
+# 計算破獲率
+df['破獲率'] = (df['總計_破獲數'] / df['總計_發生數'] * 100).round(2)
+
+# 犯罪發生數排名分析
+print("\n【2. 犯罪發生數排名分析】")
+top_5_crime = df.nlargest(5, '總計_發生數')
+bottom_5_crime = df.nsmallest(5, '總計_發生數')
+
+print(f"• 犯罪發生數最高的5個縣市：")
+for i, (idx, row) in enumerate(top_5_crime.iterrows(), 1):
+    print(f"  {i}. {row['縣市']}：{row['總計_發生數']:,} 件")
+
+print(f"• 犯罪發生數最低的5個縣市：")
+for i, (idx, row) in enumerate(bottom_5_crime.iterrows(), 1):
+    print(f"  {i}. {row['縣市']}：{row['總計_發生數']:,} 件")
+
+print(f"• 最高與最低縣市差距：{top_5_crime.iloc[0]['總計_發生數'] - bottom_5_crime.iloc[0]['總計_發生數']:,} 件")
+
+# 破獲率分析
+print("\n【3. 破獲率分析】")
+best_solve_rate = df.nlargest(5, '破獲率')
+worst_solve_rate = df.nsmallest(5, '破獲率')
+
+print(f"• 破獲率最高的5個縣市：")
+for i, (idx, row) in enumerate(best_solve_rate.iterrows(), 1):
+    print(f"  {i}. {row['縣市']}：{row['破獲率']:.2f}%")
+
+print(f"• 破獲率最低的5個縣市：")
+for i, (idx, row) in enumerate(worst_solve_rate.iterrows(), 1):
+    print(f"  {i}. {row['縣市']}：{row['破獲率']:.2f}%")
+
+high_solve_rate = df[df['破獲率'] >= 95].shape[0]
+medium_solve_rate = df[(df['破獲率'] >= 90) & (df['破獲率'] < 95)].shape[0]
+low_solve_rate = df[df['破獲率'] < 90].shape[0]
+
+print(f"• 破獲率分布：")
+print(f"  - 破獲率 ≥ 95%：{high_solve_rate} 個縣市")
+print(f"  - 破獲率 90-95%：{medium_solve_rate} 個縣市")
+print(f"  - 破獲率 < 90%：{low_solve_rate} 個縣市")
+
+# 犯罪類型分析
+print("\n【4. 犯罪類型分析】")
+crime_totals = {
+    '竊盜': df['竊盜_發生數'].sum(),
+    '詐欺背信': df['詐欺背信_發生數'].sum(),
+    '傷害': df['傷害_發生數'].sum(),
+    '毒品': df['毒品_發生數'].sum(),
+    '駕駛過失': df['駕駛過失_發生數'].sum()
+}
+
+sorted_crimes = sorted(crime_totals.items(), key=lambda x: x[1], reverse=True)
+total_analyzed_crimes = sum(crime_totals.values())
+
+print(f"• 主要犯罪類型排名：")
+for i, (crime_type, count) in enumerate(sorted_crimes, 1):
+    percentage = (count / total_analyzed_crimes * 100)
+    print(f"  {i}. {crime_type}：{count:,} 件 ({percentage:.1f}%)")
+
+print(f"• 分析的五大犯罪類型佔總犯罪數的比例：{(total_analyzed_crimes / df['總計_發生數'].sum() * 100):.1f}%")
+
+# 六都vs其他縣市分析
+print("\n【5. 六都 vs 其他縣市分析】")
+six_municipalities = ['臺北市', '新北市', '桃園市', '臺中市', '臺南市', '高雄市']
+df['城市類型'] = df['縣市'].apply(lambda x: '六都' if x in six_municipalities else '其他縣市')
+
+six_cities_data = df[df['城市類型'] == '六都']
+other_cities_data = df[df['城市類型'] == '其他縣市']
+
+six_cities_total = six_cities_data['總計_發生數'].sum()
+other_cities_total = other_cities_data['總計_發生數'].sum()
+six_cities_avg = six_cities_data['總計_發生數'].mean()
+other_cities_avg = other_cities_data['總計_發生數'].mean()
+
+print(f"• 六都總犯罪數：{six_cities_total:,} 件 ({six_cities_total / df['總計_發生數'].sum() * 100:.1f}%)")
+print(f"• 其他縣市總犯罪數：{other_cities_total:,} 件 ({other_cities_total / df['總計_發生數'].sum() * 100:.1f}%)")
+print(f"• 六都平均犯罪數：{six_cities_avg:,.0f} 件")
+print(f"• 其他縣市平均犯罪數：{other_cities_avg:,.0f} 件")
+print(f"• 六都平均犯罪數是其他縣市的 {six_cities_avg / other_cities_avg:.1f} 倍")
+
+# 特殊發現
+print("\n【6. 重要發現與結論】")
+
+# 找出破獲數超過發生數的縣市
+over_solve = df[df['總計_破獲數'] > df['總計_發生數']]
+if not over_solve.empty:
+    print(f"• 破獲數超過發生數的縣市（可能包含積案破獲）：")
+    for idx, row in over_solve.iterrows():
+        excess = row['總計_破獲數'] - row['總計_發生數']
+        print(f"  - {row['縣市']}：超出 {excess} 件")
+
+# 嫌疑犯與案件比例分析
+df['嫌疑犯案件比'] = (df['總計_嫌疑犯'] / df['總計_發生數']).round(2)
+high_suspect_ratio = df.nlargest(3, '嫌疑犯案件比')
+print(f"• 每案件平均嫌疑犯人數最高的3個縣市：")
+for i, (idx, row) in enumerate(high_suspect_ratio.iterrows(), 1):
+    print(f"  {i}. {row['縣市']}：每案 {row['嫌疑犯案件比']:.2f} 人")
+
+# 各犯罪類型的熱點縣市
+print(f"• 各犯罪類型發生數最高的縣市：")
+crime_columns = ['竊盜_發生數', '詐欺背信_發生數', '傷害_發生數', '毒品_發生數', '駕駛過失_發生數']
+crime_names = ['竊盜', '詐欺背信', '傷害', '毒品', '駕駛過失']
+
+for crime_col, crime_name in zip(crime_columns, crime_names):
+    top_city = df.loc[df[crime_col].idxmax()]
+    print(f"  - {crime_name}：{top_city['縣市']} ({top_city[crime_col]:,} 件)")
+
+print("\n" + "="*80)
+
+# 以下是原有的圖表生成代碼...
+
 # 1. 總體案件數量比較圖（橫條圖）
 plt.figure(figsize=(14, 10))
 df_sorted = df.sort_values('總計_發生數', ascending=True)
@@ -61,7 +182,6 @@ plt.tight_layout()
 plt.show()
 
 # 3. 破獲率分析圖
-df['破獲率'] = (df['總計_破獲數'] / df['總計_發生數'] * 100).round(2)
 plt.figure(figsize=(14, 8))
 colors = ['red' if x < 90 else 'orange' if x < 95 else 'green' for x in df['破獲率']]
 bars = plt.bar(df['縣市'], df['破獲率'], color=colors, alpha=0.7)
@@ -215,9 +335,6 @@ plt.tight_layout()
 plt.show()
 
 # 10. 六都vs其他縣市比較
-six_municipalities = ['臺北市', '新北市', '桃園市', '臺中市', '臺南市', '高雄市']
-df['城市類型'] = df['縣市'].apply(lambda x: '六都' if x in six_municipalities else '其他縣市')
-
 city_comparison = df.groupby('城市類型')[['總計_發生數', '總計_破獲數', '總計_嫌疑犯']].sum()
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
@@ -242,6 +359,7 @@ ax2.tick_params(axis='x', rotation=0)
 plt.tight_layout()
 plt.show()
 
+print("\n" + "="*80)
 print("所有圖表已生成完成！")
 print(f"總共生成了10種不同類型的分析圖表：")
 print("1. 總體案件數量比較圖（橫條圖）")
@@ -254,3 +372,4 @@ print("7. 犯罪密度分析散點圖")
 print("8. 各縣市各種犯罪類型發生數比較圖")
 print("9. 犯罪類型佔比分析圓餅圖")
 print("10. 六都vs其他縣市比較圖")
+print("="*80)

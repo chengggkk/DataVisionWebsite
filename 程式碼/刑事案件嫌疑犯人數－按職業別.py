@@ -65,14 +65,161 @@ def load_and_process_data():
 # 載入數據
 df = load_and_process_data()
 
-# 1. 圓餅圖 - 2022年各職業類別分布
+# === 詳細數據分析函數 ===
+
+def analyze_overall_trends():
+    """分析整體趨勢"""
+    print("=" * 80)
+    print("                    台灣刑事案件嫌疑犯職業分析報告 (2003-2022)")
+    print("=" * 80)
+    
+    # 計算總體統計
+    total_by_year = df.sum(axis=1)
+    start_total = total_by_year.iloc[0]
+    end_total = total_by_year.iloc[-1]
+    peak_year = total_by_year.idxmax()
+    peak_count = total_by_year.max()
+    lowest_year = total_by_year.idxmin()
+    lowest_count = total_by_year.min()
+    
+    print(f"\n【整體趨勢分析】")
+    print(f"• 數據期間：{df.index.min()} - {df.index.max()} 年")
+    print(f"• 2003年總案件數：{start_total:,} 件")
+    print(f"• 2022年總案件數：{end_total:,} 件")
+    print(f"• 20年變化：{((end_total - start_total) / start_total * 100):+.1f}%")
+    print(f"• 案件數最高年份：{peak_year} 年 ({peak_count:,} 件)")
+    print(f"• 案件數最低年份：{lowest_year} 年 ({lowest_count:,} 件)")
+    
+    return total_by_year
+
+def analyze_top_occupations():
+    """分析主要職業類別"""
+    print(f"\n【2022年職業類別排名分析】")
+    
+    data_2022 = df.loc[2022].sort_values(ascending=False)
+    total_2022 = data_2022.sum()
+    
+    print(f"前10大職業類別嫌疑犯人數：")
+    for i, (occupation, count) in enumerate(data_2022.head(10).items(), 1):
+        percentage = (count / total_2022) * 100
+        print(f"{i:2d}. {occupation}：{count:,} 人 ({percentage:.1f}%)")
+    
+    # 分析前三大職業
+    top3 = data_2022.head(3)
+    top3_total = top3.sum()
+    top3_percentage = (top3_total / total_2022) * 100
+    
+    print(f"\n【重點發現】")
+    print(f"• 前三大職業類別佔總數的 {top3_percentage:.1f}%")
+    print(f"• 最高：{top3.index[0]} ({top3.iloc[0]:,} 人)")
+    print(f"• 其次：{top3.index[1]} ({top3.iloc[1]:,} 人)")
+    print(f"• 第三：{top3.index[2]} ({top3.iloc[2]:,} 人)")
+
+def analyze_occupation_trends():
+    """分析各職業類別變化趨勢"""
+    print(f"\n【職業類別趨勢變化分析】")
+    
+    # 計算2003年與2022年的變化
+    changes = {}
+    for occupation in df.columns:
+        start_val = df.loc[2003, occupation]
+        end_val = df.loc[2022, occupation]
+        if start_val > 0:  # 避免除以零
+            change_pct = ((end_val - start_val) / start_val) * 100
+            changes[occupation] = {
+                '2003': start_val,
+                '2022': end_val,
+                '變化': end_val - start_val,
+                '變化率': change_pct
+            }
+    
+    # 找出增長最多和減少最多的職業
+    growth_sorted = sorted(changes.items(), key=lambda x: x[1]['變化率'], reverse=True)
+    
+    print(f"\n增長最快的職業類別（2003-2022）：")
+    for i, (occ, data) in enumerate(growth_sorted[:5], 1):
+        print(f"{i}. {occ}：{data['變化率']:+.1f}% ({data['2003']:,} → {data['2022']:,})")
+    
+    print(f"\n減少最多的職業類別（2003-2022）：")
+    for i, (occ, data) in enumerate(growth_sorted[-5:], 1):
+        print(f"{i}. {occ}：{data['變化率']:+.1f}% ({data['2003']:,} → {data['2022']:,})")
+
+def analyze_service_industry():
+    """專門分析服務業趨勢"""
+    print(f"\n【服務業深度分析】")
+    
+    service_col = '服務(不含保安工作人員)'
+    service_data = df[service_col]
+    
+    start_val = service_data.iloc[0]
+    end_val = service_data.iloc[-1]
+    peak_year = service_data.idxmax()
+    peak_val = service_data.max()
+    
+    # 計算年平均增長率
+    years = len(service_data) - 1
+    avg_growth = ((end_val / start_val) ** (1/years) - 1) * 100
+    
+    print(f"• 2003年服務業嫌疑犯：{start_val:,} 人")
+    print(f"• 2022年服務業嫌疑犯：{end_val:,} 人")
+    print(f"• 20年總增長：{((end_val - start_val) / start_val * 100):+.1f}%")
+    print(f"• 年平均增長率：{avg_growth:.1f}%")
+    print(f"• 峰值年份：{peak_year} 年 ({peak_val:,} 人)")
+
+def analyze_unemployment():
+    """分析無職人員趨勢"""
+    print(f"\n【無職人員趨勢分析】")
+    
+    unemployed_data = df['無職']
+    
+    start_val = unemployed_data.iloc[0]
+    end_val = unemployed_data.iloc[-1]
+    peak_year = unemployed_data.idxmax()
+    peak_val = unemployed_data.max()
+    lowest_year = unemployed_data.idxmin()
+    lowest_val = unemployed_data.min()
+    
+    print(f"• 2003年無職嫌疑犯：{start_val:,} 人")
+    print(f"• 2022年無職嫌疑犯：{end_val:,} 人")
+    print(f"• 20年變化：{((end_val - start_val) / start_val * 100):+.1f}%")
+    print(f"• 最高峰：{peak_year} 年 ({peak_val:,} 人)")
+    print(f"• 最低點：{lowest_year} 年 ({lowest_val:,} 人)")
+
+def generate_conclusions():
+    """生成分析結論"""
+    print(f"\n" + "=" * 80)
+    print("                                主要發現與結論")
+    print("=" * 80)
+    
+    service_2022 = df.loc[2022, '服務(不含保安工作人員)']
+    unemployed_2022 = df.loc[2022, '無職']
+    labor_2022 = df.loc[2022, '基層技術工及勞力工']
+    
+    print(f"\n【關鍵發現】")
+    print(f"1. 服務業從業人員案件數持續上升")
+    print(f"   - 2022年達到 {service_2022:,} 人，成為最大宗職業類別")
+    print(f"   - 反映台灣經濟結構轉型，服務業從業人口增加")
+    
+    print(f"\n2. 無職人員案件數呈現波動但仍處高位")
+    print(f"   - 2022年 {unemployed_2022:,} 人，長期維持在高水準")
+    print(f"   - 顯示失業與犯罪之間可能存在關聯性")
+    
+    print(f"\n3. 傳統勞動職業案件數變化")
+    print(f"   - 基層技術工及勞力工 2022年 {labor_2022:,} 人")
+    print(f"   - 技藝相關工作人員案件數明顯下降")
+    
+    print(f"\n【政策建議】")
+    print(f"• 加強服務業從業人員的法治教育和職業道德培訓")
+    print(f"• 關注失業人口的就業輔導和社會支持")
+    print(f"• 針對高風險職業群體制定預防性政策措施")
+    print(f"• 持續監測職業結構變化對犯罪趨勢的影響")
+
+# === 圖表繪製函數 ===
+
 def plot_pie_chart():
     plt.figure(figsize=(12, 10))
     
-    # 使用2022年數據
     data_2022 = df.loc[2022]
-    
-    # 只顯示前10大職業類別，其餘合併為"其他"
     sorted_data = data_2022.sort_values(ascending=False)
     top_10 = sorted_data.head(10)
     others_sum = sorted_data.tail(len(sorted_data)-10).sum()
@@ -91,11 +238,9 @@ def plot_pie_chart():
     plt.tight_layout()
     plt.show()
 
-# 2. 堆疊面積圖 - 類似您提供的圖片
 def plot_stacked_area():
     plt.figure(figsize=(16, 10))
     
-    # 選擇主要職業類別來製作堆疊面積圖
     main_categories = [
         '服務(不含保安工作人員)',
         '無職', 
@@ -107,34 +252,29 @@ def plot_stacked_area():
         '其他(含不詳)'
     ]
     
-    # 為了更好的視覺效果，將其他小類別合併
     plot_data = pd.DataFrame(index=df.index)
     
     for category in main_categories:
         if category in df.columns:
             plot_data[category] = df[category]
         else:
-            # 如果沒有該類別，設為0
             plot_data[category] = 0
     
-    # 將其餘小類別合併到"其他"
     other_categories = [col for col in df.columns if col not in main_categories]
     if other_categories:
         plot_data['其他職業'] = df[other_categories].sum(axis=1)
     
-    # 定義顏色 - 使用柔和的顏色搭配
     colors = [
-        "#B9B5FF",  # 淺橙色 - 服務業
-        '#C0C0C0',  # 銀色 - 無職
-        '#98FB98',  # 淺綠色 - 基層技術工
-        '#DDA0DD',  # 淺紫色 - 技藝相關
-        "#F08CB2",  # 卡其色 - 專業人員
-        '#87CEEB',  # 天藍色 - 學生
-        '#F5DEB3',  # 小麥色 - 農林漁牧
-        "#A01212"   # 淺灰色 - 其他
+        "#B9B5FF",  
+        '#C0C0C0',  
+        '#98FB98',  
+        '#DDA0DD',  
+        "#F08CB2",  
+        '#87CEEB',  
+        '#F5DEB3',  
+        "#A01212"   
     ]
     
-    # 創建堆疊面積圖
     plt.stackplot(plot_data.index, 
                   *[plot_data[col] for col in plot_data.columns],
                   labels=plot_data.columns,
@@ -145,26 +285,17 @@ def plot_stacked_area():
     plt.xlabel('年份', fontsize=12)
     plt.ylabel('人數', fontsize=12)
     
-    # 設置圖例
     plt.legend(loc='upper left', bbox_to_anchor=(1.02, 1), fontsize=10)
-    
-    # 設置Y軸格式
     plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{int(x/1000)}k' if x >= 1000 else str(int(x))))
-    
-    # 設置網格
     plt.grid(True, alpha=0.3, axis='y')
-    
-    # 設置X軸刻度
     plt.xticks(range(2003, 2023, 2), rotation=45)
     
     plt.tight_layout()
     plt.show()
 
-# 3. 額外的趨勢對比圖 - 主要職業類別變化
 def plot_trend_comparison():
     plt.figure(figsize=(16, 10))
     
-    # 選擇幾個重要的職業類別
     key_occupations = [
         '服務(不含保安工作人員)',
         '無職',
@@ -190,29 +321,31 @@ def plot_trend_comparison():
     plt.tight_layout()
     plt.show()
 
-# 執行圖表繪製
-print("正在生成圖表...")
+# === 主程式執行 ===
 
-print("\n1. 生成圓餅圖...")
+print("正在載入並分析數據...")
+
+# 執行詳細分析
+total_trends = analyze_overall_trends()
+analyze_top_occupations()
+analyze_occupation_trends()
+analyze_service_industry()
+analyze_unemployment()
+generate_conclusions()
+
+print(f"\n" + "=" * 80)
+print("                              開始生成視覺化圖表")
+print("=" * 80)
+
+print("\n正在生成圓餅圖...")
 plot_pie_chart()
 
-print("\n2. 生成堆疊面積圖（類似您提供的圖片）...")
+print("\n正在生成堆疊面積圖...")
 plot_stacked_area()
 
-print("\n3. 生成趨勢對比圖...")
+print("\n正在生成趨勢對比圖...")
 plot_trend_comparison()
 
-print("\n所有圖表生成完成！")
-
-# 顯示數據基本統計信息
-print("\n=== 數據基本統計 ===")
-print(f"數據時間範圍: {df.index.min()} - {df.index.max()}")
-print(f"職業類別數量: {len(df.columns)}")
-print(f"年份數量: {len(df.index)}")
-
-print("\n2022年各職業類別人數排名:")
-data_2022_sorted = df.loc[2022].sort_values(ascending=False)
-for i, (occupation, count) in enumerate(data_2022_sorted.head(10).items(), 1):
-    print(f"{i:2d}. {occupation}: {count:,}人")
-
-print(f"\n2022年總計: {df.loc[2022].sum():,}人")
+print("\n" + "=" * 80)
+print("                            分析報告與圖表生成完成")
+print("=" * 80)

@@ -22,6 +22,175 @@ data = {
     '其他': {'總計': 96618, '男': 54378, '女': 42240, '兒童': 991, '少年': 4006, '青年': 9657, '成年': 32520, '壯年': 41243, '老年': 7674}
 }
 
+def print_analysis_header():
+    """輸出分析報告標題"""
+    print("="*80)
+    print("           2023年刑事案件被害者數據分析報告")
+    print("="*80)
+    print()
+
+def analyze_overall_statistics():
+    """分析總體統計數據"""
+    print("【總體概況分析】")
+    total_victims = data['總計']['總計']
+    male_victims = data['總計']['男']
+    female_victims = data['總計']['女']
+    
+    print(f"• 2023年刑事案件被害者總計：{total_victims:,} 人")
+    print(f"• 男性被害者：{male_victims:,} 人 ({male_victims/total_victims*100:.1f}%)")
+    print(f"• 女性被害者：{female_victims:,} 人 ({female_victims/total_victims*100:.1f}%)")
+    print(f"• 性別差異：男性比女性多 {male_victims-female_victims:,} 人")
+    print()
+
+def analyze_age_distribution():
+    """分析年齡層分布"""
+    print("【年齡層分布分析】")
+    age_groups = ['兒童', '少年', '青年', '成年', '壯年', '老年']
+    age_labels = ['兒童(0-11歲)', '少年(12-17歲)', '青年(18-23歲)', 
+                  '成年(24-39歲)', '壯年(40-64歲)', '老年(65歲以上)']
+    
+    total = data['總計']['總計']
+    
+    for i, age in enumerate(age_groups):
+        count = data['總計'][age]
+        percentage = count/total*100
+        print(f"• {age_labels[i]}：{count:,} 人 ({percentage:.1f}%)")
+    
+    # 找出最高和最低的年齡層
+    age_counts = [data['總計'][age] for age in age_groups]
+    max_idx = age_counts.index(max(age_counts))
+    min_idx = age_counts.index(min(age_counts))
+    
+    print(f"\n→ 被害者最多的年齡層：{age_labels[max_idx]} ({age_counts[max_idx]:,} 人)")
+    print(f"→ 被害者最少的年齡層：{age_labels[min_idx]} ({age_counts[min_idx]:,} 人)")
+    print()
+
+def analyze_crime_types():
+    """分析各案類犯罪情況"""
+    print("【各案類犯罪分析】")
+    
+    # 排除總計，取得各案類數據
+    crime_types = list(data.keys())[1:]
+    crime_totals = [(crime, data[crime]['總計']) for crime in crime_types]
+    crime_totals.sort(key=lambda x: x[1], reverse=True)
+    
+    print("案類排名（按被害者人數）：")
+    for i, (crime, count) in enumerate(crime_totals, 1):
+        percentage = count/data['總計']['總計']*100
+        print(f"{i:2d}. {crime:12s}：{count:6,} 人 ({percentage:5.1f}%)")
+    
+    # 前三大案類分析
+    top_3 = crime_totals[:3]
+    top_3_total = sum([count for _, count in top_3])
+    print(f"\n→ 前三大案類合計：{top_3_total:,} 人，佔總數 {top_3_total/data['總計']['總計']*100:.1f}%")
+    print()
+
+def analyze_gender_by_crime():
+    """分析各案類性別分布特徵"""
+    print("【性別分布特殊案例分析】")
+    
+    crime_types = list(data.keys())[1:]
+    gender_ratios = []
+    
+    for crime in crime_types:
+        male = data[crime]['男']
+        female = data[crime]['女']
+        total = male + female
+        if total > 0:
+            male_ratio = male / total * 100
+            female_ratio = female / total * 100
+            gender_ratios.append((crime, male_ratio, female_ratio, total))
+    
+    # 找出男性比例最高和最低的案類
+    male_dominant = max(gender_ratios, key=lambda x: x[1])
+    female_dominant = min(gender_ratios, key=lambda x: x[1])
+    
+    print(f"• 男性被害者比例最高：{male_dominant[0]} ({male_dominant[1]:.1f}%)")
+    print(f"• 女性被害者比例最高：{female_dominant[0]} ({female_dominant[2]:.1f}%)")
+    
+    # 找出性別差異最大的案類
+    print("\n特殊性別分布案類：")
+    for crime, male_ratio, female_ratio, total in gender_ratios:
+        if abs(male_ratio - 50) > 30 and total > 100:  # 差異超過30%且案例數大於100
+            dominant_gender = "男性" if male_ratio > 50 else "女性"
+            dominant_ratio = max(male_ratio, female_ratio)
+            print(f"• {crime}：{dominant_gender}占 {dominant_ratio:.1f}%")
+    print()
+
+def analyze_special_crimes():
+    """分析特殊案類"""
+    print("【特殊案類深度分析】")
+    
+    # 性犯罪分析
+    print("1. 性犯罪案類分析：")
+    sex_crimes = ['妨害風化', '性交猥褻']
+    for crime in sex_crimes:
+        total = data[crime]['總計']
+        male = data[crime]['男']
+        female = data[crime]['女']
+        children = data[crime]['兒童']
+        minors = data[crime]['少年']
+        
+        print(f"   • {crime}：")
+        print(f"     - 總被害者：{total} 人")
+        print(f"     - 女性被害者比例：{female/total*100:.1f}%")
+        print(f"     - 未成年被害者：{children + minors} 人 ({(children + minors)/total*100:.1f}%)")
+    
+    # 詐欺案分析
+    print("\n2. 詐欺背信案分析：")
+    fraud_data = data['詐欺背信']
+    print(f"   • 總被害者：{fraud_data['總計']:,} 人（佔總案類 {fraud_data['總計']/data['總計']['總計']*100:.1f}%）")
+    print(f"   • 女性被害者比例：{fraud_data['女']/fraud_data['總計']*100:.1f}%")
+    print(f"   • 成年+壯年被害者：{fraud_data['成年'] + fraud_data['壯年']:,} 人 ({(fraud_data['成年'] + fraud_data['壯年'])/fraud_data['總計']*100:.1f}%)")
+    
+    # 駕駛過失分析
+    print("\n3. 駕駛過失案分析：")
+    driving_data = data['駕駛過失']
+    print(f"   • 總被害者：{driving_data['總計']:,} 人")
+    print(f"   • 男女比例相對均衡：男 {driving_data['男']/driving_data['總計']*100:.1f}%, 女 {driving_data['女']/driving_data['總計']*100:.1f}%")
+    print(f"   • 老年被害者：{driving_data['老年']} 人 ({driving_data['老年']/driving_data['總計']*100:.1f}%)")
+    print()
+
+def analyze_vulnerable_groups():
+    """分析弱勢族群受害情況"""
+    print("【弱勢族群受害分析】")
+    
+    total_victims = data['總計']['總計']
+    children = data['總計']['兒童']
+    minors = data['總計']['少年'] 
+    elderly = data['總計']['老年']
+    
+    print(f"• 兒童被害者：{children:,} 人 ({children/total_victims*100:.2f}%)")
+    print(f"• 少年被害者：{minors:,} 人 ({minors/total_victims*100:.2f}%)")
+    print(f"• 老年被害者：{elderly:,} 人 ({elderly/total_victims*100:.2f}%)")
+    print(f"• 未成年被害者合計：{children + minors:,} 人 ({(children + minors)/total_victims*100:.2f}%)")
+    
+    # 找出兒童少年被害最多的案類
+    print("\n未成年被害者主要案類：")
+    crime_types = list(data.keys())[1:]
+    minor_crimes = []
+    
+    for crime in crime_types:
+        minor_victims = data[crime]['兒童'] + data[crime]['少年']
+        if minor_victims > 0:
+            minor_crimes.append((crime, minor_victims))
+    
+    minor_crimes.sort(key=lambda x: x[1], reverse=True)
+    for crime, count in minor_crimes[:5]:
+        print(f"   • {crime}：{count} 人")
+    print()
+
+def print_conclusions():
+    """輸出分析結論"""
+    print("【分析結論與建議】")
+    print("1. 詐欺背信案件是最主要的犯罪類型，需要加強防詐宣導")
+    print("2. 竊盜案件數量龐大，應強化社區安全防護")
+    print("3. 性犯罪主要受害者為女性，尤其是未成年女性，需特別關注")
+    print("4. 壯年族群（40-64歲）是最主要的被害族群，可能與經濟活動頻繁相關")
+    print("5. 駕駛過失案件中老年被害者比例較高，需加強交通安全宣導")
+    print("6. 未成年被害者雖然比例不高，但需要特別的保護措施")
+    print("="*80)
+
 # 1. 各案類總被害人數橫條圖
 def plot_total_victims_by_case():
     cases = list(data.keys())[1:]  # 排除總計
@@ -182,8 +351,23 @@ def plot_sex_crime_analysis():
     plt.tight_layout()
     plt.show()
 
-# 執行所有圖表生成
+# 執行所有分析和圖表生成
 if __name__ == "__main__":
+    # 首先輸出所有分析結果
+    print_analysis_header()
+    analyze_overall_statistics()
+    analyze_age_distribution()
+    analyze_crime_types()
+    analyze_gender_by_crime()
+    analyze_special_crimes()
+    analyze_vulnerable_groups()
+    print_conclusions()
+    
+    print("\n" + "="*80)
+    print("開始生成視覺化圖表...")
+    print("="*80)
+    
+    # 然後生成圖表
     print("生成圖表1: 各案類總被害人數橫條圖")
     plot_total_victims_by_case()
     
@@ -202,4 +386,6 @@ if __name__ == "__main__":
     print("生成圖表6: 性犯罪案類特殊分析")
     plot_sex_crime_analysis()
     
-    print("所有圖表生成完成！")
+    print("="*80)
+    print("數據分析與圖表生成完成！")
+    print("="*80)

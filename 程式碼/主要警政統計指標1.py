@@ -9,11 +9,11 @@ plt.rcParams['font.sans-serif'] = ['Microsoft JhengHei', 'Arial Unicode MS', 'Si
 plt.rcParams['axes.unicode_minus'] = False
 
 # 讀取資料
-df = pd.read_csv('主要警政統計指標1.csv', encoding='utf-8')
+df = pd.read_csv('主要警政統計指標1V.csv', encoding='utf-8')
 
 # 資料清理和預處理
 # 跳過前兩行標題，從第三行開始讀取實際數據
-df = pd.read_csv('主要警政統計指標1.csv', skiprows=2, encoding='utf-8')
+df = pd.read_csv('主要警政統計指標1V.csv', skiprows=2, encoding='utf-8')
 
 # 手動定義欄位名稱（根據CSV結構）
 columns = ['年別', '西元年', '全般刑案_發生數', '全般刑案_破獲數', '全般刑案_破獲率', 
@@ -40,6 +40,192 @@ print("資料概況:")
 print(df.head())
 print(f"資料範圍: {df['西元年'].min()} - {df['西元年'].max()}")
 
+# ================== 詳細資料分析結果 ==================
+print("\n" + "="*80)
+print("                      台灣警政統計資料分析報告")
+print(f"                    分析期間：民國{df['民國年'].min()}年 - {df['民國年'].max()}年")
+print("="*80)
+
+# 1. 整體犯罪趨勢分析
+print("\n【一、整體犯罪趨勢分析】")
+print("-"*50)
+
+# 全般刑案分析
+total_start = df['全般刑案_發生數'].iloc[0]
+total_end = df['全般刑案_發生數'].iloc[-1]
+total_change_rate = ((total_end - total_start) / total_start) * 100
+total_peak = df['全般刑案_發生數'].max()
+total_peak_year = df.loc[df['全般刑案_發生數'].idxmax(), '民國年']
+
+print(f"1. 全般刑案發生數趨勢：")
+print(f"   • 起始年（民國{df['民國年'].min()}年）：{total_start:,} 件")
+print(f"   • 結束年（民國{df['民國年'].max()}年）：{total_end:,} 件")
+print(f"   • 整體變化：{'下降' if total_change_rate < 0 else '上升'} {abs(total_change_rate):.1f}%")
+print(f"   • 高峰期：民國{total_peak_year}年，達 {total_peak:,} 件")
+
+# 計算年平均變化率
+years_span = df['民國年'].max() - df['民國年'].min()
+annual_change_rate = (((total_end / total_start) ** (1/years_span)) - 1) * 100
+print(f"   • 年平均變化率：{annual_change_rate:.2f}%")
+
+# 2. 暴力犯罪深度分析
+print(f"\n2. 暴力犯罪分析：")
+violence_start = df['暴力犯罪_發生數'].iloc[0]
+violence_end = df['暴力犯罪_發生數'].iloc[-1]
+violence_change_rate = ((violence_end - violence_start) / violence_start) * 100
+violence_peak = df['暴力犯罪_發生數'].max()
+violence_peak_year = df.loc[df['暴力犯罪_發生數'].idxmax(), '民國年']
+
+print(f"   • 起始年發生數：{violence_start:,} 件")
+print(f"   • 結束年發生數：{violence_end:,} 件")
+print(f"   • 整體變化：{'下降' if violence_change_rate < 0 else '上升'} {abs(violence_change_rate):.1f}%")
+print(f"   • 高峰期：民國{violence_peak_year}年，達 {violence_peak:,} 件")
+
+# 3. 竊盜犯罪分析
+print(f"\n3. 竊盜犯罪分析：")
+theft_start = df['竊盜_發生數'].iloc[0]
+theft_end = df['竊盜_發生數'].iloc[-1]
+theft_change_rate = ((theft_end - theft_start) / theft_start) * 100
+theft_peak = df['竊盜_發生數'].max()
+theft_peak_year = df.loc[df['竊盜_發生數'].idxmax(), '民國年']
+
+print(f"   • 起始年發生數：{theft_start:,} 件")
+print(f"   • 結束年發生數：{theft_end:,} 件")
+print(f"   • 整體變化：{'下降' if theft_change_rate < 0 else '上升'} {abs(theft_change_rate):.1f}%")
+print(f"   • 高峰期：民國{theft_peak_year}年，達 {theft_peak:,} 件")
+
+# 二、破獲率分析
+print("\n【二、破獲率分析】")
+print("-"*50)
+
+# 各類犯罪破獲率分析
+crime_types = ['全般刑案', '暴力犯罪', '竊盜']
+solve_rates = {}
+
+for crime_type in crime_types:
+    col_name = f'{crime_type}_破獲率'
+    avg_rate = df[col_name].mean()
+    max_rate = df[col_name].max()
+    min_rate = df[col_name].min()
+    max_year = df.loc[df[col_name].idxmax(), '民國年']
+    min_year = df.loc[df[col_name].idxmin(), '民國年']
+    
+    solve_rates[crime_type] = {
+        'avg': avg_rate,
+        'max': max_rate,
+        'min': min_rate,
+        'max_year': max_year,
+        'min_year': min_year
+    }
+    
+    print(f"{crime_type}破獲率：")
+    print(f"   • 平均破獲率：{avg_rate:.1f}%")
+    print(f"   • 最高破獲率：{max_rate:.1f}%（民國{max_year}年）")
+    print(f"   • 最低破獲率：{min_rate:.1f}%（民國{min_year}年）")
+    print(f"   • 破獲率穩定性：{'穩定' if (max_rate - min_rate) < 10 else '波動較大'}（差距 {max_rate - min_rate:.1f}%）")
+    print()
+
+# 三、犯罪率分析（每十萬人口）
+print("【三、犯罪率分析（每十萬人口）】")
+print("-"*50)
+
+for crime_type in crime_types:
+    col_name = f'{crime_type}_犯罪率'
+    start_rate = df[col_name].iloc[0]
+    end_rate = df[col_name].iloc[-1]
+    avg_rate = df[col_name].mean()
+    rate_change = ((end_rate - start_rate) / start_rate) * 100
+    
+    print(f"{crime_type}犯罪率趨勢：")
+    print(f"   • 起始年：{start_rate:.1f} 件/十萬人口")
+    print(f"   • 結束年：{end_rate:.1f} 件/十萬人口")
+    print(f"   • 平均值：{avg_rate:.1f} 件/十萬人口")
+    print(f"   • 變化幅度：{'下降' if rate_change < 0 else '上升'} {abs(rate_change):.1f}%")
+    print()
+
+# 四、年度趨勢特徵分析
+print("【四、年度趨勢特徵分析】")
+print("-"*50)
+
+# 找出顯著變化的年份
+def find_significant_changes(series, threshold=0.15):
+    """找出年變化率超過閾值的年份"""
+    changes = []
+    for i in range(1, len(series)):
+        if pd.notna(series.iloc[i]) and pd.notna(series.iloc[i-1]):
+            change_rate = (series.iloc[i] - series.iloc[i-1]) / series.iloc[i-1]
+            if abs(change_rate) > threshold:
+                changes.append({
+                    'year': df.iloc[i]['民國年'],
+                    'change_rate': change_rate * 100,
+                    'direction': '大幅上升' if change_rate > 0 else '大幅下降'
+                })
+    return changes
+
+print("顯著變化年份（年變化率超過15%）：")
+for crime_type in crime_types:
+    col_name = f'{crime_type}_發生數'
+    changes = find_significant_changes(df[col_name])
+    if changes:
+        print(f"\n{crime_type}：")
+        for change in changes:
+            print(f"   • 民國{change['year']}年：{change['direction']} {abs(change['change_rate']):.1f}%")
+    else:
+        print(f"\n{crime_type}：無顯著年度變化")
+
+# 五、相關性分析
+print("\n【五、犯罪類型相關性分析】")
+print("-"*50)
+
+# 計算各類犯罪發生數的相關係數
+crime_data = df[['全般刑案_發生數', '暴力犯罪_發生數', '竊盜_發生數']]
+correlation_matrix = crime_data.corr()
+
+print("各類犯罪發生數相關係數：")
+print(f"• 全般刑案 vs 暴力犯罪：{correlation_matrix.iloc[0,1]:.3f}")
+print(f"• 全般刑案 vs 竊盜：{correlation_matrix.iloc[0,2]:.3f}")
+print(f"• 暴力犯罪 vs 竊盜：{correlation_matrix.iloc[1,2]:.3f}")
+
+# 六、重要結論
+print("\n【六、重要發現與結論】")
+print("-"*50)
+
+conclusions = []
+
+# 整體趨勢結論
+if total_change_rate < -20:
+    conclusions.append(f"1. 整體犯罪情況顯著改善，全般刑案發生數在{years_span}年間下降了{abs(total_change_rate):.1f}%")
+elif total_change_rate < -5:
+    conclusions.append(f"1. 整體犯罪情況有所改善，全般刑案發生數呈現下降趨勢")
+else:
+    conclusions.append(f"1. 整體犯罪情況需要關注，發生數變化幅度為{total_change_rate:.1f}%")
+
+# 破獲率結論
+best_solve_rate = max(solve_rates.keys(), key=lambda x: solve_rates[x]['avg'])
+worst_solve_rate = min(solve_rates.keys(), key=lambda x: solve_rates[x]['avg'])
+conclusions.append(f"2. 破獲率表現：{best_solve_rate}破獲率最高（平均{solve_rates[best_solve_rate]['avg']:.1f}%），{worst_solve_rate}破獲率相對較低（平均{solve_rates[worst_solve_rate]['avg']:.1f}%）")
+
+# 犯罪類型比重分析
+latest_year_data = df.iloc[-1]
+violence_ratio = (latest_year_data['暴力犯罪_發生數'] / latest_year_data['全般刑案_發生數']) * 100
+theft_ratio = (latest_year_data['竊盜_發生數'] / latest_year_data['全般刑案_發生數']) * 100
+conclusions.append(f"3. 最新年度犯罪結構：竊盜案件占全般刑案 {theft_ratio:.1f}%，暴力犯罪占 {violence_ratio:.1f}%")
+
+# 警政效能結論
+avg_total_solve_rate = solve_rates['全般刑案']['avg']
+if avg_total_solve_rate > 85:
+    conclusions.append(f"4. 警政執法效能良好，整體平均破獲率達 {avg_total_solve_rate:.1f}%")
+else:
+    conclusions.append(f"4. 警政執法效能有待提升，整體平均破獲率為 {avg_total_solve_rate:.1f}%")
+
+for i, conclusion in enumerate(conclusions, 1):
+    print(conclusion)
+
+print("\n" + "="*80)
+print("                        分析報告完成")
+print("="*80)
+
+# 原有的圖表繪製部分保持不變
 # 1. 複製您提供的圖表：暴力犯罪發生數與破獲率趨勢
 fig, ax1 = plt.subplots(figsize=(14, 8))
 
@@ -173,20 +359,3 @@ plt.xlabel('民國年份')
 plt.ylabel('犯罪類型')
 plt.tight_layout()
 plt.show()
-
-# 7. 統計摘要
-print("\n=== 統計摘要 ===")
-print(f"暴力犯罪發生數:")
-print(f"  最高: {df['暴力犯罪_發生數'].max():,} 件 (民國{df.loc[df['暴力犯罪_發生數'].idxmax(), '民國年']}年)")
-print(f"  最低: {df['暴力犯罪_發生數'].min():,} 件 (民國{df.loc[df['暴力犯罪_發生數'].idxmin(), '民國年']}年)")
-print(f"  平均: {df['暴力犯罪_發生數'].mean():.0f} 件")
-
-print(f"\n暴力犯罪破獲率:")
-print(f"  最高: {df['暴力犯罪_破獲率'].max():.1f}% (民國{df.loc[df['暴力犯罪_破獲率'].idxmax(), '民國年']}年)")
-print(f"  最低: {df['暴力犯罪_破獲率'].min():.1f}% (民國{df.loc[df['暴力犯罪_破獲率'].idxmin(), '民國年']}年)")
-print(f"  平均: {df['暴力犯罪_破獲率'].mean():.1f}%")
-
-print(f"\n全般刑案發生數:")
-print(f"  最高: {df['全般刑案_發生數'].max():,} 件 (民國{df.loc[df['全般刑案_發生數'].idxmax(), '民國年']}年)")
-print(f"  最低: {df['全般刑案_發生數'].min():,} 件 (民國{df.loc[df['全般刑案_發生數'].idxmin(), '民國年']}年)")
-print(f"  減少幅度: {((df['全般刑案_發生數'].iloc[-1] - df['全般刑案_發生數'].iloc[0]) / df['全般刑案_發生數'].iloc[0] * 100):.1f}%")

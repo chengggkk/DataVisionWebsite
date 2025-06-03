@@ -1,217 +1,208 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
 from matplotlib import rcParams
-import warnings
-warnings.filterwarnings('ignore')
+import io
 
-# 設定中文字體支持
-plt.rcParams['font.sans-serif'] = ['Microsoft JhengHei', 'DejaVu Sans']
+# 設定中文字體
+plt.rcParams['font.sans-serif'] = ['Microsoft JhengHei', 'SimHei', 'Arial Unicode MS']
 plt.rcParams['axes.unicode_minus'] = False
 
-# 資料輸入
-data = {
-    '案類別': ['竊盜總數', '暴力犯罪總數', '贓物', '賭博', '一般傷害', '詐欺背信', 
-             '違反毒品危害防制條例', '妨害自由', '駕駛過失', '妨害婚姻及家庭', 
-             '一般妨害風化', '侵占', '違反槍砲彈藥刀械管制條例', '公共危險', 
-             '就業服務法', '其他'],
-    '總計': [38339, 442, 66, 3118, 14384, 39028, 36435, 15105, 23783, 295, 
-             5677, 10744, 1038, 40039, 3, 46772],
-    '0-2時': [2686, 47, 0, 488, 1026, 1629, 3541, 987, 475, 38, 715, 811, 88, 3591, 1, 3881],
-    '2-4時': [2715, 32, 4, 58, 787, 318, 1562, 547, 207, 12, 377, 259, 34, 2646, 1, 1476],
-    '4-6時': [2368, 30, 0, 32, 506, 191, 880, 337, 378, 8, 227, 273, 35, 2284, 0, 1040],
-    '6-8時': [2701, 17, 1, 32, 661, 350, 1477, 644, 2491, 17, 173, 478, 72, 2703, 0, 1582],
-    '8-10時': [3681, 24, 9, 304, 978, 2697, 2589, 1266, 3177, 30, 331, 977, 81, 2728, 0, 5050],
-    '10-12時': [4089, 38, 7, 319, 1323, 5197, 3033, 1519, 2857, 16, 438, 1114, 119, 2755, 1, 5491],
-    '12-14時': [3809, 42, 9, 322, 1261, 6039, 3340, 1572, 2530, 30, 578, 1571, 124, 2493, 0, 5841],
-    '14-16時': [3888, 47, 11, 390, 1390, 5398, 3634, 1580, 2546, 17, 564, 1118, 117, 3459, 0, 5114],
-    '16-18時': [3926, 31, 10, 406, 1723, 5376, 3888, 1797, 3527, 31, 585, 1298, 117, 5676, 0, 4928],
-    '18-20時': [3385, 48, 3, 329, 1715, 5114, 4075, 1817, 2742, 34, 547, 1166, 85, 3876, 0, 4682],
-    '20-22時': [2838, 35, 10, 266, 1644, 4428, 4292, 1696, 1749, 36, 552, 1004, 83, 3757, 0, 4272],
-    '22-24時': [2253, 51, 2, 172, 1370, 2290, 4124, 1343, 1104, 26, 590, 675, 83, 4071, 0, 3415]
-}
-
-# 創建DataFrame
-df = pd.DataFrame(data)
-crime_types = df['案類別'].tolist()
-time_periods = ['0-2時', '2-4時', '4-6時', '6-8時', '8-10時', '10-12時', 
-                '12-14時', '14-16時', '16-18時', '18-20時', '20-22時', '22-24時']
-
-# 設定圖表大小和樣式
-plt.style.use('default')
-colors = plt.cm.Set3(np.linspace(0, 1, len(crime_types)))
-
-# 1. 各案類別總案件數比較（橫條圖）
-def plot_total_cases_comparison():
-    plt.figure(figsize=(12, 10))
-    sorted_indices = df['總計'].argsort()
-    bars = plt.barh(range(len(crime_types)), [df['總計'].iloc[i] for i in sorted_indices], 
-             color=[colors[i] for i in sorted_indices])
-    plt.yticks(range(len(crime_types)), [crime_types[i] for i in sorted_indices])
-    plt.xlabel('案件數')
-    plt.title('2023年各類刑事案件發生數比較', fontsize=16, fontweight='bold')
-    plt.grid(axis='x', alpha=0.3)
-    for i, v in enumerate([df['總計'].iloc[j] for j in sorted_indices]):
-        plt.text(v + 500, i, f'{v:,}', va='center', fontsize=9)
-    plt.tight_layout()
-    plt.show()
-
-plot_total_cases_comparison()
-
-# 2. 各時段總犯罪案件分布（折線圖）
-def plot_time_distribution():
-    plt.figure(figsize=(14, 8))
-    total_by_time = [sum(df[period]) for period in time_periods]
-    plt.plot(time_periods, total_by_time, marker='o', linewidth=3, markersize=8, color='crimson')
-    plt.xlabel('時段')
-    plt.ylabel('總案件數')
-    plt.title('2023年各時段刑事案件發生數分布', fontsize=16, fontweight='bold')
-    plt.xticks(rotation=45)
-    plt.grid(True, alpha=0.3)
-    for i, v in enumerate(total_by_time):
-        plt.annotate(f'{v:,}', (i, v), textcoords="offset points", xytext=(0,10), ha='center')
-    plt.tight_layout()
-    plt.show()
-
-plot_time_distribution()
-
-# 3. 主要犯罪類型的時間分布熱力圖
-def plot_heatmap():
-    plt.figure(figsize=(16, 10))
-    # 選擇案件數較多的前10類犯罪
-    top_crimes = df.nlargest(10, '總計')['案類別'].tolist()
-    heatmap_data = []
-    for crime in top_crimes:
-        crime_row = df[df['案類別'] == crime]
-        time_data = [crime_row[period].iloc[0] for period in time_periods]
-        heatmap_data.append(time_data)
-
-    sns.heatmap(heatmap_data, 
-                xticklabels=time_periods, 
-                yticklabels=top_crimes,
-                annot=True, 
-                fmt='d', 
-                cmap='YlOrRd',
-                cbar_kws={'label': '案件數'})
-    plt.title('主要犯罪類型時間分布熱力圖', fontsize=16, fontweight='bold')
-    plt.xlabel('時段')
-    plt.ylabel('犯罪類型')
-    plt.tight_layout()
-    plt.show()
-
-plot_heatmap()
-
-# 4. 各案類別佔總犯罪比例（圓餅圖）
-def plot_pie_chart():
-    plt.figure(figsize=(12, 12))
-    # 合併較小的類別
-    total_cases = df['總計'].sum()
-    major_crimes = df[df['總計'] > 5000].copy()
-    minor_crimes_sum = df[df['總計'] <= 5000]['總計'].sum()
-
-    pie_data = major_crimes['總計'].tolist() + [minor_crimes_sum]
-    pie_labels = major_crimes['案類別'].tolist() + ['其他類型合計']
-    colors_pie = plt.cm.Set3(np.linspace(0, 1, len(pie_data)))
-
-    plt.pie(pie_data, labels=pie_labels, autopct='%1.1f%%', colors=colors_pie, startangle=90)
-    plt.title('2023年各類刑事案件佔總犯罪比例', fontsize=16, fontweight='bold')
-    plt.axis('equal')
-    plt.tight_layout()
-    plt.show()
-
-plot_pie_chart()
-
-# 5. 各時段各案類別詳細分布（堆疊柱狀圖）
-def plot_stacked_bar():
-    plt.figure(figsize=(16, 10))
-    bottom = np.zeros(len(time_periods))
-    for i, crime in enumerate(crime_types):
-        crime_data = [df[df['案類別'] == crime][period].iloc[0] for period in time_periods]
-        plt.bar(time_periods, crime_data, bottom=bottom, label=crime, color=colors[i])
-        bottom += crime_data
-
-    plt.xlabel('時段')
-    plt.ylabel('案件數')
-    plt.title('各時段各類刑事案件詳細分布（堆疊圖）', fontsize=16, fontweight='bold')
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.show()
-
-plot_stacked_bar()
-
-# 6. 個別犯罪類型時間分布圖（分別生成）
-def plot_individual_crimes():
-    for crime in crime_types:
-        plt.figure(figsize=(12, 6))
-        crime_data = [df[df['案類別'] == crime][period].iloc[0] for period in time_periods]
-        
-        plt.subplot(1, 2, 1)
-        plt.bar(time_periods, crime_data, color=colors[crime_types.index(crime)], alpha=0.7)
-        plt.title(f'{crime} - 各時段分布（柱狀圖）')
-        plt.xlabel('時段')
-        plt.ylabel('案件數')
-        plt.xticks(rotation=45)
-        plt.grid(axis='y', alpha=0.3)
-        
-        plt.subplot(1, 2, 2)
-        plt.plot(time_periods, crime_data, marker='o', linewidth=2, markersize=6, 
-                 color=colors[crime_types.index(crime)])
-        plt.title(f'{crime} - 各時段分布（折線圖）')
-        plt.xlabel('時段')
-        plt.ylabel('案件數')
-        plt.xticks(rotation=45)
-        plt.grid(True, alpha=0.3)
-        
-        plt.tight_layout()
-        plt.show()
-
-plot_individual_crimes()
-
-# 7. 犯罪高峰時段分析
-def plot_peak_hours_analysis():
-    plt.figure(figsize=(14, 8))
-    peak_hours = {}
-    for crime in crime_types:
-        crime_data = [df[df['案類別'] == crime][period].iloc[0] for period in time_periods]
-        peak_hour = time_periods[crime_data.index(max(crime_data))]
-        peak_hours[crime] = peak_hour
-
-    # 計算每個時段是多少類犯罪的高峰期
-    peak_count = {}
-    for period in time_periods:
-        peak_count[period] = list(peak_hours.values()).count(period)
-
-    plt.bar(peak_count.keys(), peak_count.values(), color='orange', alpha=0.7)
-    plt.xlabel('時段')
-    plt.ylabel('作為高峰期的犯罪類型數量')
-    plt.title('各時段作為犯罪高峰期的統計', fontsize=16, fontweight='bold')
-    plt.xticks(rotation=45)
-    plt.grid(axis='y', alpha=0.3)
-    for i, (k, v) in enumerate(peak_count.items()):
-        plt.text(i, v + 0.1, str(v), ha='center', va='bottom')
-    plt.tight_layout()
-    plt.show()
-
-plot_peak_hours_analysis()
-
-# 主執行函數
-def main():
-    print("=== 台灣刑事案件統計分析 ===")
-    print(f"總犯罪案件數：{df['總計'].sum():,} 件")
-    print(f"最多的犯罪類型：{df.loc[df['總計'].idxmax(), '案類別']} ({df['總計'].max():,} 件)")
-    print(f"最少的犯罪類型：{df.loc[df['總計'].idxmin(), '案類別']} ({df['總計'].min():,} 件)")
-
-    # 各時段犯罪統計
-    time_stats = {period: sum(df[period]) for period in time_periods}
-    peak_time = max(time_stats, key=time_stats.get)
-    low_time = min(time_stats, key=time_stats.get)
-    print(f"犯罪最高峰時段：{peak_time} ({time_stats[peak_time]:,} 件)")
-    print(f"犯罪最低峰時段：{low_time} ({time_stats[low_time]:,} 件)")
+# 讀取CSV數據
+def read_csv_data():
+    # 模擬CSV數據
+    data = {
+        '年別': ['民國 92年 2003', '民國 93年 2004', '民國 94年 2005', '民國 95年 2006', '民國 96年 2007', 
+                '民國 97年 2008', '民國 98年 2009', '民國 99年 2010', '民國100年 2011', '民國101年 2012',
+                '民國102年 2013', '民國103年 2014', '民國104年 2015', '民國105年 2016', '民國106年 2017',
+                '民國107年 2018', '民國108年 2019', '民國109年 2020', '民國110年 2021', '民國111年 2022'],
+        '總計': [158687, 176975, 207425, 229193, 265860, 271186, 261973, 269340, 260356, 262058,
+                255310, 261603, 269296, 272817, 287294, 291621, 277664, 281811, 265221, 291891],
+        '不識字': [1981, 1747, 2125, 2185, 2139, 2078, 2088, 2449, 1479, 1513,
+                  1402, 1633, 1109, 993, 802, 939, 724, 747, 523, 521],
+        '自修': [121, 123, 130, 156, 180, 139, 169, 218, 125, 127,
+                131, 166, 115, 120, 86, 123, 146, 113, 169, 143],
+        '國小': [18857, 19288, 21420, 22151, 24579, 23226, 21850, 23250, 18660, 18357,
+                16671, 16956, 16023, 14015, 11619, 11732, 10505, 10602, 8916, 9169],
+        '國中': [61011, 68660, 78682, 84009, 91490, 90576, 80706, 82928, 76302, 75509,
+                69387, 71036, 70723, 64638, 64891, 59413, 53909, 51152, 46511, 48588],
+        '高中職': [60653, 70107, 85417, 96702, 118577, 127244, 128464, 131364, 134985, 136214,
+                  138487, 139474, 145608, 156264, 170810, 177042, 166001, 170050, 162751, 183481],
+        '大專': [14389, 15776, 18244, 21844, 26450, 25576, 25321, 25425, 24886, 26583,
+                25473, 26446, 27352, 27769, 30063, 30828, 33420, 39731, 38261, 40614],
+        '研究所': [543, 684, 818, 996, 1354, 1329, 1479, 1563, 1547, 1644,
+                  1626, 1742, 1782, 1864, 1907, 1965, 2004, 2086, 1978, 2060],
+        '其他': [1132, 590, 589, 1150, 1091, 1018, 1896, 2143, 2372, 2111,
+                2133, 4150, 6584, 7154, 7116, 9579, 10955, 7330, 6112, 7315]
+    }
     
-    print("\n正在生成圖表...")
+    df = pd.DataFrame(data)
+    # 提取年份
+    df['年份'] = df['年別'].str.extract(r'(\d{4})').astype(int)
+    return df
 
-# 執行主函數
-if __name__ == "__main__":
-    main()
+# 讀取數據
+df = read_csv_data()
+
+# 數據分析和結論輸出
+def analyze_data(df):
+    print("=" * 60)
+    print("台灣刑事案件嫌疑犯教育程度數據分析報告 (2003-2022)")
+    print("=" * 60)
+    
+    # 基本統計
+    print("\n【基本統計】")
+    print(f"資料期間：{df['年份'].min()}年 - {df['年份'].max()}年")
+    print(f"總案件數範圍：{df['總計'].min():,} - {df['總計'].max():,} 人")
+    print(f"平均年度案件數：{df['總計'].mean():.0f} 人")
+    
+    # 趨勢分析
+    print("\n【整體趨勢分析】")
+    start_total = df['總計'].iloc[0]
+    end_total = df['總計'].iloc[-1]
+    change_rate = ((end_total - start_total) / start_total) * 100
+    print(f"2003年總數：{start_total:,} 人")
+    print(f"2022年總數：{end_total:,} 人")
+    print(f"20年變化率：{change_rate:+.1f}%")
+    
+    # 各教育程度變化分析
+    print("\n【各教育程度變化分析】")
+    categories = ['不識字', '自修', '國小', '國中', '高中職', '大專', '研究所', '其他']
+    
+    for category in categories:
+        start_val = df[category].iloc[0]
+        end_val = df[category].iloc[-1]
+        if start_val > 0:
+            change_rate = ((end_val - start_val) / start_val) * 100
+            print(f"{category:>4}：{start_val:>6,} → {end_val:>6,} 人 ({change_rate:+6.1f}%)")
+        else:
+            print(f"{category:>4}：{start_val:>6,} → {end_val:>6,} 人 (無法計算變化率)")
+    
+    # 占比分析
+    print("\n【2022年教育程度占比】")
+    total_2022 = df['總計'].iloc[-1]
+    for category in categories:
+        val_2022 = df[category].iloc[-1]
+        percentage = (val_2022 / total_2022) * 100
+        print(f"{category:>4}：{val_2022:>6,} 人 ({percentage:>5.1f}%)")
+    
+    # 關鍵發現
+    print("\n【關鍵發現】")
+    
+    # 找出增長最多和減少最多的教育程度
+    max_increase = 0
+    max_increase_cat = ""
+    max_decrease = 0
+    max_decrease_cat = ""
+    
+    for category in categories:
+        start_val = df[category].iloc[0]
+        end_val = df[category].iloc[-1]
+        change = end_val - start_val
+        
+        if change > max_increase:
+            max_increase = change
+            max_increase_cat = category
+        elif change < max_decrease:
+            max_decrease = change
+            max_decrease_cat = category
+    
+    print(f"• 增長最多：{max_increase_cat} (+{max_increase:,} 人)")
+    print(f"• 減少最多：{max_decrease_cat} ({max_decrease:,} 人)")
+    
+    # 高等教育趨勢
+    higher_ed_2003 = df['大專'].iloc[0] + df['研究所'].iloc[0]
+    higher_ed_2022 = df['大專'].iloc[-1] + df['研究所'].iloc[-1]
+    higher_ed_change = ((higher_ed_2022 - higher_ed_2003) / higher_ed_2003) * 100
+    print(f"• 高等教育(大專+研究所)：{higher_ed_2003:,} → {higher_ed_2022:,} 人 ({higher_ed_change:+.1f}%)")
+    
+    # 基礎教育趨勢
+    basic_ed_2003 = df['國小'].iloc[0] + df['國中'].iloc[0]
+    basic_ed_2022 = df['國小'].iloc[-1] + df['國中'].iloc[-1]
+    basic_ed_change = ((basic_ed_2022 - basic_ed_2003) / basic_ed_2003) * 100
+    print(f"• 基礎教育(國小+國中)：{basic_ed_2003:,} → {basic_ed_2022:,} 人 ({basic_ed_change:+.1f}%)")
+    
+    print("\n【結論】")
+    print("1. 高中職學歷的嫌疑犯人數大幅增加，成為主要群體")
+    print("2. 基礎教育(國小+國中)學歷的嫌疑犯人數明顯下降")
+    print("3. 高等教育學歷的嫌疑犯人數持續增長，值得關注")
+    print("4. 整體犯罪案件數在20年間呈現上升趨勢")
+    print("5. 教育程度結構反映了台灣社會教育水平的提升")
+    print("=" * 60)
+
+# 執行數據分析
+analyze_data(df)
+
+# 圖表1：堆疊面積圖 - 台灣刑事案件嫌疑犯教育程度變化 (2003-2022)
+fig1, ax1 = plt.subplots(figsize=(12, 8))
+
+# 準備堆疊數據
+categories = ['不識字', '自修', '國小', '國中', '高中職', '大專', '研究所', '其他']
+colors = ['#FFB6C1', '#FFA07A', '#98FB98', '#87CEEB', '#DDA0DD', '#F0E68C', '#D3D3D3', '#FFFF99']
+
+# 創建堆疊面積圖
+x = df['年份']
+y_stack = np.zeros(len(df))
+
+for i, category in enumerate(categories):
+    ax1.fill_between(x, y_stack, y_stack + df[category], 
+                     alpha=0.7, color=colors[i], label=category)
+    y_stack += df[category]
+
+ax1.set_title('台灣刑事案件嫌疑犯教育程度變化 (2003-2022)', fontsize=16, fontweight='bold')
+ax1.set_xlabel('年份', fontsize=12)
+ax1.set_ylabel('嫌疑犯人數', fontsize=12)
+ax1.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+ax1.grid(True, alpha=0.3)
+ax1.set_xlim(2003, 2022)
+
+# 設定y軸格式
+ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{int(x/1000)}萬' if x >= 10000 else f'{int(x)}'))
+
+plt.tight_layout()
+plt.show()
+
+# 圖表2：線圖 - 主要學歷類別嫌疑犯人數趨勢變化
+fig2, ax2 = plt.subplots(figsize=(12, 8))
+
+# 選擇主要學歷類別
+main_categories = ['國中', '高中職', '大專', '國小', '研究所', '其他']
+line_colors = ['#87CEEB', '#4169E1', '#32CD32', '#FFB347', '#FF69B4', '#9370DB']
+line_styles = ['-', '-', '-', '--', '-.', ':']
+markers = ['o', 's', '^', 'v', 'd', '*']
+
+for i, category in enumerate(main_categories):
+    ax2.plot(df['年份'], df[category], 
+             color=line_colors[i], 
+             linestyle=line_styles[i],
+             marker=markers[i],
+             markersize=6,
+             linewidth=2,
+             label=category,
+             alpha=0.8)
+
+ax2.set_title('主要學歷類別嫌疑犯人數趨勢變化', fontsize=16, fontweight='bold')
+ax2.set_xlabel('年份', fontsize=12)
+ax2.set_ylabel('人數', fontsize=12)
+ax2.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+ax2.grid(True, alpha=0.3)
+ax2.set_xlim(2003, 2022)
+
+# 設定y軸格式
+ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{int(x/1000)}千' if x >= 1000 else f'{int(x)}'))
+
+# 添加數據標註框
+textstr = '資料來源：內政部警政署\n2022年：約29.1萬人'
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+ax2.text(0.98, 0.98, textstr, transform=ax2.transAxes, fontsize=10,
+         verticalalignment='top', horizontalalignment='right', bbox=props)
+
+plt.tight_layout()
+plt.show()
+
+print("\n" + "=" * 40)
+print("圖表生成完成")
+print("=" * 40)
+print("✓ 圖表1：堆疊面積圖 - 顯示各教育程度嫌疑犯人數的整體變化趨勢")
+print("✓ 圖表2：線圖 - 顯示主要學歷類別的個別趨勢變化")
+print("✓ 數據分析報告已輸出")
