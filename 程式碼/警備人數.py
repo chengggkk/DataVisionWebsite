@@ -5,7 +5,7 @@ import pandas as pd
 
 # 使用 Mac 支援的中文字體（可根據實際安裝情況調整）
 # 常見選項："Heiti TC", "PingFang TC", "STHeiti"
-font = FontProperties(fname="/System/Library/Fonts/STHeiti Light.ttc", size=12)
+font = FontProperties(fname="C:/Windows/Fonts/msjh.ttc", size=12)
 
 # 下載台灣地圖資料
 geo_url = "https://raw.githubusercontent.com/codeforgermany/click_that_hood/main/public/data/taiwan.geojson"
