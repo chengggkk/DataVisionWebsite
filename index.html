@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>火災事件資料分析</title>
+    <title>警政統計資料分析</title>
     <style>
         * {
             margin: 0;
@@ -19,72 +19,81 @@
         }
 
         .sidebar {
-            width: 280px;
+            width: 340px;
             background-color: #2c3e50;
             color: white;
             padding: 20px;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.15);
+            overflow-y: auto;
+            height: 100vh;
+            position: relative;
         }
 
         .logo {
             text-align: center;
-            font-size: 24px;
+            font-size: 26px;
             font-weight: bold;
             margin-bottom: 30px;
-            padding: 15px;
-            background-color: #34495e;
-            border-radius: 8px;
+            padding: 18px;
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
         .nav-item {
-            margin-bottom: 15px;
+            margin-bottom: 18px;
         }
 
         .nav-label {
             display: block;
-            font-size: 16px;
-            font-weight: 500;
-            color: white;
-            margin-bottom: 8px;
-            padding: 5px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #ecf0f1;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            line-height: 1.4;
+            letter-spacing: 0.3px;
         }
 
         .custom-dropdown {
-            position: relative;
             width: 100%;
-            margin-bottom: 5px;
+            margin-bottom: 12px;
         }
 
         .dropdown-selected {
             width: 100%;
-            padding: 12px 15px;
+            padding: 14px 18px;
             border: none;
-            border-radius: 6px;
-            background-color: #34495e;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
             color: white;
             font-size: 14px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             outline: none;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: relative;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 2px solid transparent;
         }
 
         .dropdown-selected:hover {
-            background-color: #4a6741;
-            transform: translateX(3px);
+            background: linear-gradient(135deg, #4a6741 0%, #27ae60 100%);
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
         }
 
         .dropdown-selected.active {
-            background-color: #27ae60;
-            box-shadow: 0 0 0 2px rgba(39, 174, 96, 0.3);
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            border-color: rgba(46, 204, 113, 0.5);
+            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.2);
         }
 
         .dropdown-arrow {
             transition: transform 0.3s ease;
-            font-size: 12px;
+            font-size: 14px;
+            font-weight: bold;
         }
 
         .dropdown-selected.active .dropdown-arrow {
@@ -92,137 +101,210 @@
         }
 
         .dropdown-options {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background-color: #2c3e50;
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
+            width: 100%;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
             opacity: 0;
             visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             max-height: 0;
-            overflow: hidden;
+            overflow-y: auto;
+            overflow-x: hidden;
+            margin-top: 8px;
+            border: 1px solid rgba(52, 73, 94, 0.3);
         }
 
         .dropdown-options.show {
             opacity: 1;
             visibility: visible;
-            transform: translateY(0);
-            max-height: 200px;
+            max-height: 180px;
+        }
+
+        .dropdown-options::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .dropdown-options::-webkit-scrollbar-track {
+            background: #34495e;
+            border-radius: 4px;
+        }
+
+        .dropdown-options::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            border-radius: 4px;
+            border: 1px solid #34495e;
+        }
+
+        .dropdown-options::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
         }
 
         .dropdown-option {
-            padding: 12px 15px;
-            color: white;
+            padding: 12px 18px;
+            color: #ecf0f1;
             cursor: pointer;
-            transition: all 0.2s ease;
-            border-bottom: 1px solid #34495e;
+            transition: all 0.25s ease;
+            border-bottom: 1px solid rgba(52, 73, 94, 0.5);
             font-size: 14px;
+            white-space: nowrap;
+            position: relative;
         }
 
         .dropdown-option:last-child {
             border-bottom: none;
-            border-radius: 0 0 6px 6px;
+            border-radius: 0 0 8px 8px;
         }
 
         .dropdown-option:first-child {
-            border-radius: 6px 6px 0 0;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .dropdown-option::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            transition: width 0.3s ease;
         }
 
         .dropdown-option:hover {
-            background-color: #2980b9;
-            transform: translateX(5px);
-            padding-left: 20px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            padding-left: 24px;
+            color: white;
+            transform: translateX(3px);
+        }
+
+        .dropdown-option:hover::before {
+            width: 4px;
         }
 
         .dropdown-option.selected {
-            background-color: #27ae60;
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            font-weight: 600;
         }
 
         .single-button {
-            background-color: #34495e;
-            padding: 12px 15px;
-            border-radius: 6px;
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            padding: 14px 18px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             font-weight: 500;
             border: none;
             width: 100%;
             text-align: left;
             color: white;
             font-size: 16px;
+            line-height: 1.4;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 2px solid transparent;
         }
 
         .single-button:hover {
-            background-color: #4a6741;
-            transform: translateX(5px);
+            background: linear-gradient(135deg, #4a6741 0%, #27ae60 100%);
+            transform: translateX(8px);
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
         }
 
         .single-button.active {
-            background-color: #27ae60;
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            border-color: rgba(46, 204, 113, 0.5);
+            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.2);
         }
 
         .main-content {
             flex: 1;
-            padding: 30px;
+            padding: 40px;
             background-color: white;
-            margin: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            position: relative;
         }
 
         .chart-container {
             text-align: center;
-            padding: 50px;
+            padding: 60px 40px;
         }
 
         .chart-placeholder {
             width: 100%;
-            height: 500px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
+            height: 520px;
+            border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 24px;
+            font-size: 26px;
             font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            margin-top: 20px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+            margin-top: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 15px;
+        }
+
+        .chart-placeholder.has-image {
+            padding: 0;
+        }
+
+        .chart-placeholder::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
+            pointer-events: none;
         }
 
         .chart-title {
-            font-size: 28px;
+            font-size: 32px;
             color: #2c3e50;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            font-weight: 700;
         }
 
         .chart-subtitle {
-            font-size: 16px;
+            font-size: 18px;
             color: #7f8c8d;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
+            font-weight: 400;
         }
 
         .welcome-screen {
             text-align: center;
-            padding: 100px 50px;
+            padding: 120px 60px;
             color: #2c3e50;
         }
 
         .welcome-title {
-            font-size: 36px;
-            margin-bottom: 20px;
+            font-size: 42px;
+            margin-bottom: 25px;
             color: #27ae60;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(39, 174, 96, 0.1);
         }
 
         .welcome-subtitle {
-            font-size: 18px;
+            font-size: 20px;
             color: #7f8c8d;
-            line-height: 1.6;
+            line-height: 1.8;
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
         .footer {
@@ -230,112 +312,255 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background-color: #2c3e50;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
             color: white;
             text-align: center;
-            padding: 15px;
+            padding: 18px;
             font-size: 14px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
+            z-index: 1000;
+        }
+
+        .photo-count {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            margin-left: 10px;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(231, 76, 60, 0.3);
+        }
+
+        /* 載入動畫 */
+        .loading {
+            position: relative;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            margin: -20px 0 0 -20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 40vh;
+            }
+            
+            .main-content {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            .welcome-title {
+                font-size: 28px;
+            }
+            
+            .welcome-subtitle {
+                font-size: 16px;
+            }
+        }
+
+        /* 改進的過渡效果 */
+        .nav-item {
+            transform: translateZ(0);
+        }
+
+        .custom-dropdown, .single-button {
+            will-change: transform;
+        }
+
+        /* 焦點狀態改進 */
+        .dropdown-selected:focus,
+        .single-button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.5);
         }
     </style>
 </head>
 <body>
     <div class="sidebar">
-        <div class="logo">首頁</div>
+        <div class="logo">警政統計分析</div>
         
         <div class="nav-item">
-            <label class="nav-label">102~111年火災資料分析</label>
-            <div class="custom-dropdown" data-category="102-111年火災資料分析">
-                <div class="dropdown-selected" onclick="toggleDropdown(this)">
+            <label class="nav-label">92~112主要警政統計指標 <span class="photo-count">8張</span></label>
+            <div class="custom-dropdown" data-category="92~112主要警政統計指標">
+                <div class="dropdown-selected" onclick="toggleDropdown(this)" tabindex="0">
                     <span class="selected-text">請選擇分析項目</span>
                     <span class="dropdown-arrow">▼</span>
                 </div>
                 <div class="dropdown-options">
-                    <div class="dropdown-option" onclick="selectOption(this, '年度統計圖表')">年度統計圖表</div>
-                    <div class="dropdown-option" onclick="selectOption(this, '地區分佈圖')">地區分佈圖</div>
-                    <div class="dropdown-option" onclick="selectOption(this, '原因分析圖')">原因分析圖</div>
-                    <div class="dropdown-option" onclick="selectOption(this, '損失統計圖')">損失統計圖</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '2023各縣市全般刑案發生數', '2023各縣市全般刑案發生數.png')">2023各縣市全般刑案發生數</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '2023各縣市全般刑案破獲率', '2023各縣市全般刑案破獲率.png')">2023各縣市全般刑案破獲率</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '全般刑案發生數與破獲率', '全般刑案發生數與破獲率.png')">全般刑案發生數與破獲率</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '六都警政績效雷達圖', '六都警政績效雷達圖.png')">六都警政績效雷達圖</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '各縣市三種犯罪類型犯罪率', '各縣市三種犯罪類型犯罪率.png')">各縣市三種犯罪類型犯罪率</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '各類犯罪查獲率趨勢', '各類犯罪查獲率趨勢.png')">各類犯罪查獲率趨勢</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '各類犯罪發生數趨勢', '各類犯罪發生數趨勢.png')">各類犯罪發生數趨勢</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '暴力犯罪發生與破獲率', '暴力犯罪發生與破獲率.png')">暴力犯罪發生與破獲率</div>
                 </div>
             </div>
         </div>
 
         <div class="nav-item">
-            <label class="nav-label">111年火災資料分析</label>
-            <div class="custom-dropdown" data-category="111年火災資料分析">
-                <div class="dropdown-selected" onclick="toggleDropdown(this)">
+            <label class="nav-label">刑事案件嫌疑犯人數－按教育別 <span class="photo-count">4張</span></label>
+            <div class="custom-dropdown" data-category="刑事案件嫌疑犯人數－按教育別">
+                <div class="dropdown-selected" onclick="toggleDropdown(this)" tabindex="0">
                     <span class="selected-text">請選擇分析項目</span>
                     <span class="dropdown-arrow">▼</span>
                 </div>
                 <div class="dropdown-options">
-                    <div class="dropdown-option" onclick="selectOption(this, '月份統計圖')">月份統計圖</div>
-                    <div class="dropdown-option" onclick="selectOption(this, '時段分析圖')">時段分析圖</div>
-                    <div class="dropdown-option" onclick="selectOption(this, '建築類型圖')">建築類型圖</div>
-                    <div class="dropdown-option" onclick="selectOption(this, '傷亡統計圖')">傷亡統計圖</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '主要學歷類別嫌疑人數趨勢', '主要學歷類別嫌疑人數趨勢.png')">主要學歷類別嫌疑人數趨勢</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '台灣刑事案件嫌疑犯教育程度時間變化', '台灣刑事案件嫌疑犯教育程度時間變化.png')">台灣刑事案件嫌疑犯教育程度時間變化</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '男女嫌疑人學歷分佈', '男女嫌疑人學歷分佈.png')">男女嫌疑人學歷分佈</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '男女嫌疑人學歷分佈比例堆疊', '男女嫌疑人學歷分佈比例堆疊.png')">男女嫌疑人學歷分佈比例堆疊</div>
                 </div>
             </div>
         </div>
 
         <div class="nav-item">
-            <label class="nav-label">111年火災資料地圖</label>
-            <div class="custom-dropdown" data-category="111年火災資料地圖">
-                <div class="dropdown-selected" onclick="toggleDropdown(this)">
-                    <span class="selected-text">請選擇地圖類型</span>
-                    <span class="dropdown-arrow">▼</span>
-                </div>
-                <div class="dropdown-options">
-                    <div class="dropdown-option" onclick="selectOption(this, '熱點分佈圖')">熱點分佈圖</div>
-                    <div class="dropdown-option" onclick="selectOption(this, '區域密度圖')">區域密度圖</div>
-                    <div class="dropdown-option" onclick="selectOption(this, '交通路線圖')">交通路線圖</div>
-                    <div class="dropdown-option" onclick="selectOption(this, '風險評估圖')">風險評估圖</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="nav-item">
-            <label class="nav-label">109年火災資料分析</label>
-            <div class="custom-dropdown" data-category="109年火災資料分析">
-                <div class="dropdown-selected" onclick="toggleDropdown(this)">
+            <label class="nav-label">刑事案件嫌疑犯人數－按職業別 <span class="photo-count">2張</span></label>
+            <div class="custom-dropdown" data-category="刑事案件嫌疑犯人數－按職業別">
+                <div class="dropdown-selected" onclick="toggleDropdown(this)" tabindex="0">
                     <span class="selected-text">請選擇分析項目</span>
                     <span class="dropdown-arrow">▼</span>
                 </div>
                 <div class="dropdown-options">
-                    <div class="dropdown-option" onclick="selectOption(this, '季度趨勢圖')">季度趨勢圖</div>
-                    <div class="dropdown-option" onclick="selectOption(this, '起火原因圖')">起火原因圖</div>
-                    <div class="dropdown-option" onclick="selectOption(this, '應急響應圖')">應急響應圖</div>
-                    <div class="dropdown-option" onclick="selectOption(this, '預防措施圖')">預防措施圖</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '2022年刑事案件嫌疑犯', '2022年刑事案件嫌疑犯.png')">2022年刑事案件嫌疑犯</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '台灣刑事案件嫌疑犯職業類別', '台灣刑事案件嫌疑犯職業類別.png')">台灣刑事案件嫌疑犯職業類別</div>
                 </div>
             </div>
         </div>
 
         <div class="nav-item">
-            <label class="nav-label">散佈圖火災資料分析</label>
-            <div class="custom-dropdown" data-category="散佈圖火災資料分析">
-                <div class="dropdown-selected" onclick="toggleDropdown(this)">
-                    <span class="selected-text">請選擇分析類型</span>
+            <label class="nav-label">刑事案件發生數、破獲數及嫌疑犯人數－按案類別 <span class="photo-count">5張</span></label>
+            <div class="custom-dropdown" data-category="刑事案件發生數、破獲數及嫌疑犯人數－按案類別">
+                <div class="dropdown-selected" onclick="toggleDropdown(this)" tabindex="0">
+                    <span class="selected-text">請選擇分析項目</span>
                     <span class="dropdown-arrow">▼</span>
                 </div>
                 <div class="dropdown-options">
-                    <div class="dropdown-option" onclick="selectOption(this, '相關性分析圖')">相關性分析圖</div>
-                    <div class="dropdown-option" onclick="selectOption(this, '回歸分析圖')">回歸分析圖</div>
-                    <div class="dropdown-option" onclick="selectOption(this, '聚類分析圖')">聚類分析圖</div>
-                    <div class="dropdown-option" onclick="selectOption(this, '異常檢測圖')">異常檢測圖</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '2022各類犯罪發生數嫌疑人', '2022各類犯罪發生數嫌疑人.png')">2022各類犯罪發生數嫌疑人</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '2022各類犯罪發生數排名', '2022各類犯罪發生數排名.png')">2022各類犯罪發生數排名</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '台灣主要犯罪類型發生數趨勢(2015~2022)', '台灣主要犯罪類型發生數趨勢(2015~2022).png')">台灣主要犯罪類型發生數趨勢(2015~2022)</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '各縣市主要犯罪類型案件數', '各縣市主要犯罪類型案件數.png')">各縣市主要犯罪類型案件數</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '各縣市形勢發生數破獲數嫌疑人', '各縣市形勢發生數破獲數嫌疑人.png')">各縣市形勢發生數破獲數嫌疑人</div>
                 </div>
             </div>
         </div>
 
         <div class="nav-item">
-            <button class="single-button" onclick="showChart('火災頻發要素', '')">
-                火災頻發要素
-            </button>
+            <label class="nav-label">刑事案件被害人死傷人數－按案類別 <span class="photo-count">3張</span></label>
+            <div class="custom-dropdown" data-category="刑事案件被害人死傷人數－按案類別">
+                <div class="dropdown-selected" onclick="toggleDropdown(this)" tabindex="0">
+                    <span class="selected-text">請選擇分析項目</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+                <div class="dropdown-options">
+                    <div class="dropdown-option" onclick="selectOption(this, '92年~111年刑事案件死傷', '92年~111年刑事案件死傷.png')">92年~111年刑事案件死傷</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '2023年前10大犯罪類型', '2023年前10大犯罪類型.png')">2023年前10大犯罪類型</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '2023年台灣各類刑事案件死亡率', '2023年台灣各類刑事案件死亡率.png')">2023年台灣各類刑事案件死亡率</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-item">
+            <label class="nav-label">刑事案件被害者人數－按案類及年齡層別 <span class="photo-count">4張</span></label>
+            <div class="custom-dropdown" data-category="刑事案件被害者人數－按案類及年齡層別">
+                <div class="dropdown-selected" onclick="toggleDropdown(this)" tabindex="0">
+                    <span class="selected-text">請選擇分析項目</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+                <div class="dropdown-options">
+                    <div class="dropdown-option" onclick="selectOption(this, '2023刑事案件被害者', '2023刑事案件被害者.png')">2023刑事案件被害者</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '2023各案類刑事案件被害者性別', '2023各案類刑事案件被害者性別.png')">2023各案類刑事案件被害者性別</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '主要案類按年齡層分布堆疊圖', '主要案類按年齡層分布堆疊圖.png')">主要案類按年齡層分布堆疊圖</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '犯罪統計分析案性別年齡層', '犯罪統計分析案性別年齡層.png')">犯罪統計分析案性別年齡層</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-item">
+            <label class="nav-label">台灣暴力案件犯罪統計 <span class="photo-count">2張</span></label>
+            <div class="custom-dropdown" data-category="台灣暴力案件犯罪統計">
+                <div class="dropdown-selected" onclick="toggleDropdown(this)" tabindex="0">
+                    <span class="selected-text">請選擇分析項目</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+                <div class="dropdown-options">
+                    <div class="dropdown-option" onclick="selectOption(this, '主要縣市暴力犯罪類型', '主要縣市暴力犯罪類型.png')">主要縣市暴力犯罪類型</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '台灣地區暴力犯罪案件統計', '台灣地區暴力犯罪案件統計.png')">台灣地區暴力犯罪案件統計</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-item">
+            <label class="nav-label">各縣市犯罪人口104~112 <span class="photo-count">9張</span></label>
+            <div class="custom-dropdown" data-category="各縣市犯罪人口104~112">
+                <div class="dropdown-selected" onclick="toggleDropdown(this)" tabindex="0">
+                    <span class="selected-text">請選擇分析項目</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+                <div class="dropdown-options">
+                    <div class="dropdown-option" onclick="selectOption(this, '104年', '104年.png')">104年</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '105年', '105年.png')">105年</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '106年', '106年.png')">106年</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '107年', '107年.png')">107年</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '108年', '108年.png')">108年</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '109年', '109年.png')">109年</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '110年', '110年.png')">110年</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '111年', '111年.png')">111年</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '112年', '112年.png')">112年</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-item">
+            <label class="nav-label">其他統計資料 <span class="photo-count">5張</span></label>
+            <div class="custom-dropdown" data-category="其他">
+                <div class="dropdown-selected" onclick="toggleDropdown(this)" tabindex="0">
+                    <span class="selected-text">請選擇分析項目</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+                <div class="dropdown-options">
+                    <div class="dropdown-option" onclick="selectOption(this, '2022年各犯罪類型年齡層', '2022年各犯罪類型年齡層.png')">2022年各犯罪類型年齡層</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '2023年刑事案件24小時分布', '2023年刑事案件24小時分布.png')">2023年刑事案件24小時分布</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '主要犯罪類型24小時疊加', '主要犯罪類型24小時疊加.png')">主要犯罪類型24小時疊加</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '台灣各縣市警備人數', '台灣各縣市警備人數.png')">台灣各縣市警備人數</div>
+                    <div class="dropdown-option" onclick="selectOption(this, '台灣竊盜案件統計分析', '台灣竊盜案件統計分析.png')">台灣竊盜案件統計分析</div>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="main-content">
         <div id="welcome-screen" class="welcome-screen">
-            <h1 class="welcome-title">火災事件資料分析系統</h1>
+            <h1 class="welcome-title">警政統計資料分析系統</h1>
             <p class="welcome-subtitle">
-                歡迎使用火災事件資料分析平台<br>
+                歡迎使用警政統計資料分析平台<br>
                 請從左側選單選擇您要查看的分析圖表<br>
-                本系統提供102年至111年完整的火災資料統計與分析
+                本系統提供完整的犯罪統計資料與分析視覺化
             </p>
         </div>
         
@@ -349,14 +574,13 @@
     </div>
 
     <div class="footer">
-        火災事件資料分析 | 資料來源：政府開放資料平台
+        警政統計資料分析 | 資料來源：政府開放資料平台 | 內政部警政署統計資料
     </div>
 
     <script>
         function toggleDropdown(selectedElement) {
             const dropdown = selectedElement.parentElement;
             const options = dropdown.querySelector('.dropdown-options');
-            const arrow = selectedElement.querySelector('.dropdown-arrow');
             
             // Close all other dropdowns
             document.querySelectorAll('.custom-dropdown').forEach(otherDropdown => {
@@ -373,7 +597,7 @@
             selectedElement.classList.toggle('active');
         }
 
-        function selectOption(optionElement, value) {
+        function selectOption(optionElement, value, imageName) {
             const dropdown = optionElement.closest('.custom-dropdown');
             const selectedElement = dropdown.querySelector('.dropdown-selected');
             const selectedText = selectedElement.querySelector('.selected-text');
@@ -399,8 +623,7 @@
             document.querySelectorAll('.custom-dropdown').forEach(otherDropdown => {
                 if (otherDropdown !== dropdown) {
                     const otherSelectedText = otherDropdown.querySelector('.selected-text');
-                    const placeholderText = otherDropdown.querySelector('.dropdown-selected').getAttribute('data-placeholder') || '請選擇項目';
-                    otherSelectedText.textContent = getPlaceholderText(otherDropdown.getAttribute('data-category'));
+                    otherSelectedText.textContent = '請選擇分析項目';
                     
                     // Remove selected class from other dropdown options
                     otherDropdown.querySelectorAll('.dropdown-option').forEach(opt => {
@@ -414,21 +637,10 @@
                 button.classList.remove('active');
             });
             
-            // Show chart
-            showChart(category, value);
+            // Show chart with image
+            showChart(category, value, imageName);
         }
-
-        function getPlaceholderText(category) {
-            const placeholders = {
-                '102-111年火災資料分析': '請選擇分析項目',
-                '111年火災資料分析': '請選擇分析項目',
-                '111年火災資料地圖': '請選擇地圖類型',
-                '109年火災資料分析': '請選擇分析項目',
-                '散佈圖火災資料分析': '請選擇分析類型'
-            };
-            return placeholders[category] || '請選擇項目';
-        }
-
+        
         // Close dropdowns when clicking outside
         document.addEventListener('click', function(event) {
             if (!event.target.closest('.custom-dropdown')) {
@@ -441,7 +653,19 @@
             }
         });
 
-        function showChart(category, subcategory) {
+        // 鍵盤支持
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.querySelectorAll('.dropdown-options').forEach(options => {
+                    options.classList.remove('show');
+                });
+                document.querySelectorAll('.dropdown-selected').forEach(selected => {
+                    selected.classList.remove('active');
+                });
+            }
+        });
+
+        function showChart(category, subcategory, imageName) {
             // Hide welcome screen
             document.getElementById('welcome-screen').style.display = 'none';
             
@@ -457,54 +681,68 @@
             if (subcategory) {
                 chartTitle.textContent = subcategory;
                 chartSubtitle.textContent = `${category} - ${subcategory}`;
-                chartPlaceholder.textContent = `${category} - ${subcategory} 圖表`;
             } else {
                 chartTitle.textContent = category;
                 chartSubtitle.textContent = category;
-                chartPlaceholder.textContent = `${category} 圖表`;
-                
-                // Highlight single button if clicked
-                document.querySelectorAll('.single-button').forEach(button => {
-                    if (button.textContent.trim() === category) {
-                        button.classList.add('active');
-                    } else {
-                        button.classList.remove('active');
-                    }
-                });
             }
             
-            // Add some visual feedback
-            chartPlaceholder.style.background = getRandomGradient();
+            // Add loading animation
+            chartPlaceholder.classList.add('loading');
+            chartPlaceholder.classList.remove('has-image');
+
             
             // Simulate loading effect
-            chartPlaceholder.textContent = '載入中...';
             setTimeout(() => {
-                if (subcategory) {
-                    chartPlaceholder.textContent = `${category} - ${subcategory} 圖表`;
+                chartPlaceholder.classList.remove('loading');
+                
+                if (imageName && imageName !== 'other') {
+                    // Display actual image with correct path
+                    const imagePath = `image/${category}/${imageName}`;
+                    chartPlaceholder.classList.add('has-image');
+                    chartPlaceholder.innerHTML = `<img src="${imagePath}" alt="${subcategory || category}" class="chart-image" onerror="this.style.display='none'; this.parentElement.classList.remove('has-image'); this.parentElement.innerHTML='圖片載入失敗，請檢查圖片路徑: ${imagePath}';">`;
                 } else {
-                    chartPlaceholder.textContent = `${category} 圖表`;
+                    // Display placeholder text
+                    if (subcategory) {
+                        chartPlaceholder.innerHTML = `${category}<br>${subcategory}<br>圖表視覺化`;
+                    } else {
+                        chartPlaceholder.innerHTML = `${category}<br>統計分析圖表`;
+                    }
                 }
-            }, 500);
-        }
-
-        function getRandomGradient() {
-            const gradients = [
-                'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-                'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-                'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-                'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-                'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)'
-            ];
-            return gradients[Math.floor(Math.random() * gradients.length)];
+            }, 1200);
         }
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Fire Disaster Analysis Dashboard Loaded');
+            console.log('Police Statistics Analysis Dashboard Loaded');
+            
+            // 添加平滑滾動效果
+            document.querySelector('.sidebar').style.scrollBehavior = 'smooth';
+            
+            // 預載入一些樣式效果
+            setTimeout(() => {
+                document.body.classList.add('loaded');
+            }, 100);
         });
+
+        // 性能優化：防抖動
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // 優化的滾動處理
+        const optimizedScrollHandler = debounce(() => {
+            // 可以在這裡添加滾動相關的處理邏輯
+        }, 16);
+
+        window.addEventListener('scroll', optimizedScrollHandler);
     </script>
 </body>
 </html>
